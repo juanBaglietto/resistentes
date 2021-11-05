@@ -4,88 +4,151 @@
 #include "reflector.h"
 #include "colors.h"
 
+static enum Action { MANUAL,
+                     ESCENA_1,
+                     ESCENA_2,
+                     ESCENA_3,
+                     ESCENA_4,
+} _action;
 
-int _address = ADDRESS_BASE_REFL_1;
-int _color[3] = {0, 0, 100};
+int _address_manual = ADDRESS_BASE_REFL_1;
+int _color[3] = {75, 10, 0};
 
+Reflector reflector1;
+Reflector reflector2;
+Reflector reflectorSelec;
 
+void initRelectores();
 void crossFade(int address_base, int color[3]);
+Reflector *parserReflector(String msg);
+//Color parserColor(String msg_red, String msg_green, String msg_blue);
 
 void TaskSerial(void *pvParameters);
 void TaskCrossFade(void *pvParameters);
 
 void setup()
 {
-
+  initRelectores();
   xTaskCreate(TaskSerial, "Serial", 128, NULL, 2, NULL);
-  xTaskCreate(TaskCrossFade, "CrossFade", 128, NULL, 2, NULL);
+  //xTaskCreate(TaskCrossFade, "CrossFade", 128, NULL, 2, NULL);
 }
-void loop() {
-  
-}
-
-
-void TaskSerial(void *pvParameters) 
+void loop()
 {
+}
 
+void TaskSerial(void *pvParameters)
+{
   (void)pvParameters;
+  Reflector *reflectorSelec;
   Serial.begin(9600);
   while (!Serial)
   {
     ; // wait for serial port to connect. Needed for native USB
   }
   Serial.println("Resistentes \n");
-  for (;;) 
+  for (;;)
   {
-    while (Serial.available() > 0)
+    if (Serial.available())
     {
-      String command = Serial.readStringUntil(' ');
-      String reflector = Serial.readStringUntil(' ');
-      String color = Serial.readStringUntil('\n');
-      if (command == "manual")
+      String msg_read = Serial.readStringUntil(' ');
+      Serial.print("llego: ");
+      Serial.print(msg_read);
+      Serial.print("\n");
+
+      if (msg_read == "manual")
       {
-        Serial.print("Camando Manual");
-        Serial.print('\n');
-        Serial.print(reflector);
-        Serial.print('\n');
-        Serial.print(color);
-        Serial.print('\n');
+        // _action = MANUAL;
+        String msg_reflector = Serial.readStringUntil(' ');
+        String msg_status = Serial.readStringUntil('\n');
+        Serial.println("Camando Manual");
+        reflectorSelec = parserReflector(msg_reflector);
 
-        if (reflector == "r1")
+        if (msg_status == "on")
         {
-          Serial.print("reflector 1");
-          _address = ADDRESS_BASE_REFL_1;
+          Serial.println("on");
+          reflectorSelec->setStatus(true);
         }
-        else if (reflector == "r2")
+        else
         {
-          Serial.print("reflector  2");
-          _address = ADDRESS_BASE_REFL_2;
+          Serial.println("off");
+          reflectorSelec->setStatus(false);
         }
-
-        if (color == "red")
+      }
+      else if (msg_read == "color")
+      {
+        // _action = MANUAL;
+        String msg_reflector = Serial.readStringUntil(' ');
+        String msg_red = Serial.readStringUntil(' ');
+        String msg_green = Serial.readStringUntil(' ');
+        String msg_blue = Serial.readStringUntil('\n');
+        Serial.println("Camando Color");
+        Color colorAux;
+        colorAux.changeColor(msg_red.toInt(), msg_green.toInt(), msg_blue.toInt());
+        if (msg_reflector == "all")
         {
-          Serial.print("Color Rojo");
-          _color[0] = red[0];
-          _color[1] = red[1];
-          _color[2] = red[2];
+          reflector1.setColor(colorAux);
+          reflector2.setColor(colorAux);
         }
-        else if (color == "green")
+        else
         {
-          Serial.print("Color verde");
-          _color[0] = green[0];
-          _color[1] = green[1];
-          _color[2] = green[2];
+          reflectorSelec = parserReflector(msg_reflector);
+          reflectorSelec->setColor(colorAux);
         }
+      }
+      else
+      {
+        Serial.readString();
       }
     }
   }
 }
 
-
 void TaskCrossFade(void *pvParameters)
 {
-  for (;;) 
+  for (;;)
   {
-    crossFade(_address, _color);
+    switch (_action)
+    {
+    case MANUAL:
+      break;
+    case ESCENA_1:
+
+      break;
+
+    default:
+      break;
+    }
+    // crossFade(_address_manual, _color);
+    // crossFade(7, _color);
+    vTaskDelay(1000);
   }
+}
+
+void initRelectores()
+{
+  reflector1.initReflector(ADDRESS_BASE_REFL_1);
+
+  Color coloinit;
+  coloinit.changeColor(0, 20, 45);
+  reflector1.setColor(coloinit);
+  coloinit.changeColor(0, 20, 45);
+  reflector2.initReflector(ADDRESS_BASE_REFL_2);
+  reflector2.setColor(coloinit);
+}
+
+Reflector *parserReflector(String msg)
+{
+  Reflector *null_r;
+
+  if (msg == "r1")
+  {
+    Serial.println("reflector 1");
+    return &reflector1;
+  }
+  else if (msg == "r2")
+  {
+    Serial.println("reflector  2");
+    return &reflector2;
+  }
+  return null_r;
 }

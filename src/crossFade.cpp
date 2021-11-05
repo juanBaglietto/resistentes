@@ -110,3 +110,4 @@ void crossFade(int address_base, int color[3])
   prevB = bluVal;
   //delay(hold); // Pause for optional 'wait' milliseconds before resuming the loop
 }
+
