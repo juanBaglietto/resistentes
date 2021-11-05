@@ -1,25 +1,16 @@
 #include "crossFade.h"
 
-
-
-int redVal = 0;
-int grnVal = 0; 
-int bluVal = 0;
-int wait = 5;      // 10ms internal crossFade delay; increase for slower fades
-int hold = 200;       // Optional hold when a color is complete, before the next crossFade
-int DEBUG = 1;      // DEBUG counter; if set to 1, will write values back via serial
-int loopCount = 60; // How often should DEBUG report?
-int repeat = 0;     // How many times should we loop before stopping? (0 for no stop)
 int j = 0;   
 
 
-int prevR = redVal;
-int prevG = grnVal;
-int prevB = bluVal;
+
+void CrossFade::setAddress(int adr)
+{
+  reflectorAddress=adr;
+}
 
 
-
-int calculateStep(int prevValue, int endValue)
+int CrossFade::calculateStep(int prevValue, int endValue)
 {
   int step = endValue - prevValue; // What's the overall gap?
   if (step)
@@ -35,7 +26,7 @@ int calculateStep(int prevValue, int endValue)
   *  (R, G, and B are each calculated separately.)
   */
 
-int calculateVal(int step, int val, int i)
+int CrossFade::calculateVal(int step, int val, int i)
 {
 
   if ((step) && i % step == 0)
@@ -68,12 +59,13 @@ int calculateVal(int step, int val, int i)
   *  the color values to the correct pins.
   */
 
-void crossFade(int address_base, int color[3])
+void CrossFade::crossFade( Color color)
 {
   // Convert to 0-255
-  int R = (color[0] * 255) / 100;
-  int G = (color[1] * 255) / 100;
-  int B = (color[2] * 255) / 100;
+
+  int R = (color.getRed() * 255) / 100;
+  int G = (color.getGreen() * 255) / 100;
+  int B = (color.getBlue() * 255) / 100;
 
   int stepR = calculateStep(prevR, R);
   int stepG = calculateStep(prevG, G);
@@ -84,9 +76,9 @@ void crossFade(int address_base, int color[3])
     redVal = calculateVal(stepR, redVal, i);
     grnVal = calculateVal(stepG, grnVal, i);
     bluVal = calculateVal(stepB, bluVal, i);
-    DmxSimple.write(address_base, redVal);
-    DmxSimple.write(address_base + 1, grnVal);
-    DmxSimple.write(address_base + 2, bluVal);
+    DmxSimple.write(reflectorAddress, redVal);
+    DmxSimple.write(reflectorAddress + 1, grnVal);
+    DmxSimple.write(reflectorAddress + 2, bluVal);
 
     delay(wait); // Pause for 'wait' milliseconds before resuming the loop
   }
@@ -97,9 +89,9 @@ void crossFade(int address_base, int color[3])
     redVal = calculateVal(-stepR, redVal, i);
     grnVal = calculateVal(-stepG, grnVal, i);
     bluVal = calculateVal(-stepB, bluVal, i);
-    DmxSimple.write(address_base, redVal);
-    DmxSimple.write(address_base + 1, grnVal);
-    DmxSimple.write(address_base + 2, bluVal);
+    DmxSimple.write(reflectorAddress, redVal);
+    DmxSimple.write(reflectorAddress + 1, grnVal);
+    DmxSimple.write(reflectorAddress + 2, bluVal);
 
     delay(wait); // Pause for 'wait' milliseconds before resuming the loop
   }

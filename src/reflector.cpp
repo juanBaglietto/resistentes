@@ -4,6 +4,7 @@
 void Reflector::initReflector(int address)
 {
     _address = address;
+    _crossFade.setAddress(_address);
 }
 
 void Reflector::setColor(Color color)
@@ -38,4 +39,9 @@ void Reflector::equal(Reflector R1)
     _address = R1._address;
     _color = R1._color;
     _status = R1._status;
+}
+
+void Reflector::initCrossFade()
+{
+    _crossFade.crossFade(_color);
 }

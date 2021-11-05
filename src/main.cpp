@@ -1,6 +1,5 @@
 
 #include <Arduino_FreeRTOS.h>
-#include "crossFade.h"
 #include "reflector.h"
 #include "colors.h"
 
@@ -30,7 +29,7 @@ void setup()
 {
   initRelectores();
   xTaskCreate(TaskSerial, "Serial", 128, NULL, 2, NULL);
-  //xTaskCreate(TaskCrossFade, "CrossFade", 128, NULL, 2, NULL);
+  xTaskCreate(TaskCrossFade, "CrossFade", 128, NULL, 2, NULL);
 }
 void loop()
 {
@@ -118,9 +117,8 @@ void TaskCrossFade(void *pvParameters)
     default:
       break;
     }
-    // crossFade(_address_manual, _color);
-    // crossFade(7, _color);
-    vTaskDelay(1000);
+    reflector1.initCrossFade();
+    reflector2.initCrossFade();
   }
 }
 
