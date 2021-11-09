@@ -2,7 +2,8 @@
 #include <Arduino_FreeRTOS.h>
 #include "reflector.h"
 #include "colors.h"
-
+#include "MTimer.h"
+extern void AnalizarTimer(void);
 static enum Action { MANUAL,
                      ESCENA_1,
                      ESCENA_2,
@@ -25,9 +26,16 @@ Reflector *parserReflector(String msg);
 void TaskSerial(void *pvParameters);
 void TaskCrossFade(void *pvParameters);
 
+void ISR_timer1()
+{
+  AnalizarTimer();
+}
+
 void setup()
 {
   initRelectores();
+  Timer1.initialize(100000); // timer 1 interrumpe cada 100ms
+  Timer1.attachInterrupt(ISR_timer1);
   xTaskCreate(TaskSerial, "Serial", 128, NULL, 2, NULL);
   xTaskCreate(TaskCrossFade, "CrossFade", 128, NULL, 2, NULL);
 }
