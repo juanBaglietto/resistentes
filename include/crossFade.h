@@ -18,11 +18,22 @@ private:
     int prevB = bluVal;
     int wait = 5;
 
-    int reflectorAddress;
+    int stepR = 0;
+    int stepG = 0;
+    int stepB = 0;
+    int countFade=0;
     
+    int reflectorAddress;
+    int fadeStatus=0;
 
 public:
+    
     void setAddress(int adr);
     void crossFade(Color color);
+    void fadeIn();
+    void fadeOut();
+    void countFadeUp();
+    void setcountFade(int value);
+    void setFadeStatus(int);
+    int getFadeStatus();
 };
-

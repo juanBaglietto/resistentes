@@ -9,11 +9,13 @@ class Reflector
 {
 private:
     Color _color;
-    CrossFade _crossFade;
+    
     int _address;
     bool _status;
 
+
 public:
+    CrossFade _crossFade;
     Reflector()
     {
        _address=0; 

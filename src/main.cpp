@@ -29,13 +29,20 @@ void TaskCrossFade(void *pvParameters);
 void ISR_timer1()
 {
   AnalizarTimer();
+  
 }
 
 void setup()
 {
   initRelectores();
+  pinMode(LED_BUILTIN, OUTPUT);
   Timer1.initialize(100000); // timer 1 interrumpe cada 100ms
   Timer1.attachInterrupt(ISR_timer1);
+
+  reflector1.initCrossFade();
+    delay(1000);
+    
+  digitalWrite(LED_BUILTIN, LOW);
   xTaskCreate(TaskSerial, "Serial", 128, NULL, 2, NULL);
   xTaskCreate(TaskCrossFade, "CrossFade", 128, NULL, 2, NULL);
 }
@@ -53,6 +60,7 @@ void TaskSerial(void *pvParameters)
     ; // wait for serial port to connect. Needed for native USB
   }
   Serial.println("Resistentes \n");
+  reflector1.initCrossFade();
   for (;;)
   {
     if (Serial.available())
@@ -73,6 +81,7 @@ void TaskSerial(void *pvParameters)
         if (msg_status == "on")
         {
           Serial.println("on");
+          
           reflectorSelec->setStatus(true);
         }
         else
@@ -112,8 +121,10 @@ void TaskSerial(void *pvParameters)
 
 void TaskCrossFade(void *pvParameters)
 {
+
   for (;;)
   {
+    TmrEvent();
     switch (_action)
     {
     case MANUAL:
@@ -125,8 +136,8 @@ void TaskCrossFade(void *pvParameters)
     default:
       break;
     }
-    reflector1.initCrossFade();
-    reflector2.initCrossFade();
+    
+    //reflector2.initCrossFade();
   }
 }
 

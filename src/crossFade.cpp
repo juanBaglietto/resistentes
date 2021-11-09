@@ -1,4 +1,5 @@
 #include "crossFade.h"
+#include "MTimer.h"
 
 int j = 0;   
 
@@ -67,39 +68,57 @@ void CrossFade::crossFade( Color color)
   int G = (color.getGreen() * 255) / 100;
   int B = (color.getBlue() * 255) / 100;
 
-  int stepR = calculateStep(prevR, R);
-  int stepG = calculateStep(prevG, G);
-  int stepB = calculateStep(prevB, B);
+  stepR = calculateStep(prevR, R);
+  stepG = calculateStep(prevG, G);
+  stepB = calculateStep(prevB, B);
+  fadeStatus=1;
+  TmrStart(EVENTO0, STEP_FADE);
+  TmrStart(EVENTO1, TIME_FADE);
 
-  for (int i = 0; i <= 1020; i++)
-  {
-    redVal = calculateVal(stepR, redVal, i);
-    grnVal = calculateVal(stepG, grnVal, i);
-    bluVal = calculateVal(stepB, bluVal, i);
-    DmxSimple.write(reflectorAddress, redVal);
-    DmxSimple.write(reflectorAddress + 1, grnVal);
-    DmxSimple.write(reflectorAddress + 2, bluVal);
-
-    delay(wait); // Pause for 'wait' milliseconds before resuming the loop
-  }
-
-  for (int i = 0; i <= 1020; i++)
-  {
-
-    redVal = calculateVal(-stepR, redVal, i);
-    grnVal = calculateVal(-stepG, grnVal, i);
-    bluVal = calculateVal(-stepB, bluVal, i);
-    DmxSimple.write(reflectorAddress, redVal);
-    DmxSimple.write(reflectorAddress + 1, grnVal);
-    DmxSimple.write(reflectorAddress + 2, bluVal);
-
-    delay(wait); // Pause for 'wait' milliseconds before resuming the loop
-  }
-
+  
   // Update current values for next loop
-  prevR = redVal;
-  prevG = grnVal;
-  prevB = bluVal;
+  // prevR = redVal;
+  // prevG = grnVal;
+  // prevB = bluVal;
   //delay(hold); // Pause for optional 'wait' milliseconds before resuming the loop
 }
 
+void CrossFade::fadeIn()
+{
+
+    redVal = calculateVal(stepR, redVal, countFade);
+    grnVal = calculateVal(stepG, grnVal, countFade);
+    bluVal = calculateVal(stepB, bluVal, countFade);
+    DmxSimple.write(reflectorAddress, redVal);
+    DmxSimple.write(reflectorAddress + 1, grnVal);
+    DmxSimple.write(reflectorAddress + 2, bluVal);
+}
+void CrossFade::fadeOut()
+{
+    redVal = calculateVal(-stepR, redVal, countFade);
+    grnVal = calculateVal(-stepG, grnVal, countFade);
+    bluVal = calculateVal(-stepB, bluVal, countFade);
+    DmxSimple.write(reflectorAddress, redVal);
+    DmxSimple.write(reflectorAddress + 1, grnVal);
+    DmxSimple.write(reflectorAddress + 2, bluVal);
+}
+
+void CrossFade::countFadeUp()
+{
+  countFade++;
+}
+
+void CrossFade::setcountFade(int value)
+{
+  countFade=value;
+}
+
+void CrossFade::setFadeStatus(int value)
+{
+  fadeStatus=value;
+}
+
+int CrossFade::getFadeStatus()
+{
+  return fadeStatus;
+}
