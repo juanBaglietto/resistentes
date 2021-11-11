@@ -4,8 +4,8 @@
 #include "colors.h"
 #include "MTimer.h"
 #define MAX_REFLECTOR 6
-#define STEP_FADE_IN_ms 5
-#define STEP_FADE_OUT_ms 5
+#define STEP_FADE_IN_ms 1
+#define STEP_FADE_OUT_ms 1
 #define DELAY_FULL 1
 
 enum Escena1
@@ -67,13 +67,13 @@ void initRelectores()
   Color coloinit;
   coloinit.changeColor(238,102, 8);
   reflector1.setColor(coloinit);
-  reflector1._crossFade.setTFade(20);
+  reflector1._crossFade.setTFade(5);
   reflectores[0] = &reflector1;
 
   //coloinit.changeColor(30, 20, 80);
   reflector2.initReflector(ADDRESS_BASE_REFL_2);
   reflector2.setColor(coloinit);
-  reflector2._crossFade.setTFade(10);
+  reflector2._crossFade.setTFade(5);
   reflectores[1] = &reflector2;
   reflectoresEnUso = 2;
 }
@@ -96,14 +96,14 @@ void analizarEscenas()
     statusE1 = PASO_1;
     break;
   case PASO_1:
-    if (reflectores[0]->_crossFade.getFadeStatus() == FADE_OUT)
+    if (reflectores[0]->_crossFade.getFadeStatus() == FADE_OUT && reflectores[0]->_crossFade.getPorFadeOut()>=90)
     {
       reflectores[1]->initCrossFade();
       statusE1 = PASO_2;
     }
     break;
   case PASO_2:
-    if (reflectores[1]->_crossFade.getFadeStatus() == FADE_OUT)
+    if (reflectores[1]->_crossFade.getFadeStatus() == FADE_OUT && reflectores[1]->_crossFade.getPorFadeOut()>=50)
     {
       reflectores[0]->initCrossFade();
       statusE1 = INICIO_E1;

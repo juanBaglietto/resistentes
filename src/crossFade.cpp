@@ -1,5 +1,6 @@
 #include "crossFade.h"
 #include "MTimer.h"
+#define STEP_DIV 2500
 
 int j = 0;
 
@@ -10,7 +11,7 @@ long CrossFade::calculateStep(int prevValue, int endValue)
   // Serial.println();
   if (step)
   {                     // If its non-zero,
-    step = 1020 / step; //   divide by 1020
+    step = STEP_DIV / step; //   divide by 1020
   }
   // Serial.print(step);
   // Serial.println();
@@ -66,6 +67,13 @@ void CrossFade::crossFade(Color color)
   stepR = calculateStep(prevR, col_R);
   stepG = calculateStep(prevG, col_G);
   stepB = calculateStep(prevB, col_B);
+    // Serial.print("steps: ");
+    // Serial.print(stepR );
+    // Serial.print(", ");
+    // Serial.print(stepG );
+    // Serial.print(", ");
+    // Serial.print(stepB );
+    // Serial.print("\n");
 
   reflector_status = INICIO_CF;
 
@@ -80,19 +88,23 @@ int CrossFade::fadeIn()
   countFade++;
 
 
+
   DmxSimple.write(reflectorAddress, redVal);
   DmxSimple.write(reflectorAddress + 1, grnVal);
   DmxSimple.write(reflectorAddress + 2, bluVal);
 
-  if (redVal >= col_R || grnVal >= col_G || bluVal >= col_B)
+  if (countFade>=STEP_DIV)
   {
-    Serial.print("Color fade in FIN: ");
-    Serial.print(redVal);
-    Serial.print(", ");
-    Serial.print(grnVal);
-    Serial.print(", ");
-    Serial.print(bluVal);
-    Serial.print("\n");
+    // Serial.print("Color fade in FIN: ");
+    // Serial.print(redVal);
+    // Serial.print(", ");
+    // Serial.print(grnVal);
+    // Serial.print(", ");
+    // Serial.print(bluVal);
+    // Serial.print("\n");
+    // Serial.print("Contador: ");
+    // Serial.print(countFade);
+    // Serial.print("\n");
    // Serial.println("Fin fade IN");
     return -1;
   }
@@ -104,12 +116,12 @@ int CrossFade::fadeOut()
   grnVal = calculateVal(-stepG, grnVal, countFade);
   bluVal = calculateVal(-stepB, bluVal, countFade);
   countFade++;
-
+  porcentajeFadeOut=(countFade*100)/STEP_DIV;
   DmxSimple.write(reflectorAddress, redVal);
   DmxSimple.write(reflectorAddress + 1, grnVal);
   DmxSimple.write(reflectorAddress + 2, bluVal);
 
-  if (redVal <= 0 || grnVal <= 0 || bluVal <= 0)
+  if (countFade>=STEP_DIV)
   {
     Serial.println("Fin fade OUT");
     return -1;
@@ -179,4 +191,9 @@ int CrossFade::getTcountFade()
 int CrossFade::getFadeDelay_b()
 {
   return fade_delay_b;
+}
+
+int CrossFade::getPorFadeOut()
+{
+  return porcentajeFadeOut;
 }

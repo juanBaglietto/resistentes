@@ -46,6 +46,8 @@ private:
     int fade_delay_g;
     int fade_delay_b;
 
+    int porcentajeFadeOut=0;
+
 public:
     void setAddress(byte adr);
     void crossFade(Color color);
@@ -63,4 +65,5 @@ public:
     void setTFade(int);
     int getTFade();
     int getFadeDelay_b();
+    int getPorFadeOut();
 };
