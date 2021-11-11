@@ -4,8 +4,8 @@
 #include "colors.h"
 #include "MTimer.h"
 #define MAX_REFLECTOR 6
-#define STEP_FADE_IN_ms 40
-#define STEP_FADE_OUT_ms 40
+#define STEP_FADE_IN_ms 5
+#define STEP_FADE_OUT_ms 5
 #define DELAY_FULL 1
 
 enum Escena1
@@ -65,12 +65,12 @@ void initRelectores()
   reflector1.initReflector(ADDRESS_BASE_REFL_1);
 
   Color coloinit;
-  coloinit.changeColor(30, 20, 80);
+  coloinit.changeColor(238,102, 8);
   reflector1.setColor(coloinit);
   reflector1._crossFade.setTFade(20);
   reflectores[0] = &reflector1;
 
-  coloinit.changeColor(30, 20, 80);
+  //coloinit.changeColor(30, 20, 80);
   reflector2.initReflector(ADDRESS_BASE_REFL_2);
   reflector2.setColor(coloinit);
   reflector2._crossFade.setTFade(10);
@@ -78,8 +78,7 @@ void initRelectores()
   reflectoresEnUso = 2;
 }
 
-bool escena_1 = true;
-bool escena_2 = false;
+
 
 void loop()
 {
@@ -123,18 +122,6 @@ void analizarEscenas()
 
   default:
     break;
-  }
-  if (escena_1)
-  {
-    escena_1 = false;
-    reflectores[0]->initCrossFade();
-    escena_2 = true;
-  }
-  if (reflectores[0]->_crossFade.getFadeStatus() == FADE_OUT && escena_2 == true)
-  {
-    escena_2 = false;
-    Serial.println("Terino el refelctor 2");
-    reflectores[1]->initCrossFade();
   }
 }
 void analizarFade()

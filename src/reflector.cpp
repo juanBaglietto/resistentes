@@ -11,9 +11,9 @@ void Reflector::setColor(Color color)
 {
 
     _color.changeColor(color.getRed(), color.getGreen(), color.getBlue());
-    DmxSimple.write(_address, color.getRed());
-    DmxSimple.write(_address + 1, color.getGreen());
-    DmxSimple.write(_address + 2, color.getBlue());
+    // DmxSimple.write(_address, color.getRed());
+    // DmxSimple.write(_address + 1, color.getGreen());
+    // DmxSimple.write(_address + 2, color.getBlue());
 }
 
 void Reflector::setStatus(bool status)

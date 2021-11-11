@@ -6,14 +6,14 @@ int j = 0;
 long CrossFade::calculateStep(int prevValue, int endValue)
 {
   long step = endValue - prevValue; // What's the overall gap?
-  Serial.print(step);
-  Serial.println();
+  // Serial.print(step);
+  // Serial.println();
   if (step)
-  {                                  // If its non-zero,
+  {                     // If its non-zero,
     step = 1020 / step; //   divide by 1020
   }
-  Serial.print(step);
-  Serial.println();
+  // Serial.print(step);
+  // Serial.println();
   return step;
 }
 
@@ -63,27 +63,12 @@ void CrossFade::crossFade(Color color)
   col_R = color.getRed();
   col_G = color.getGreen();
   col_B = color.getBlue();
-
   stepR = calculateStep(prevR, col_R);
   stepG = calculateStep(prevG, col_G);
   stepB = calculateStep(prevB, col_B);
-  // fade_delay_b = ((t_fade_in * 1000) / (stepB * (color.getBlue())));
-  // Serial.print("delay");
-  // Serial.print(fade_delay_b);
-
-  // Serial.print("\n");
-  // Serial.print("color");
-  // Serial.print((stepB * (color.getBlue())));
-
-  // Serial.print("\n");
 
   reflector_status = INICIO_CF;
 
-  // Update current values for next loop
-  // prevR = redVal;
-  // prevG = grnVal;
-  // prevB = bluVal;
-  //delay(hold); // Pause for optional 'wait' milliseconds before resuming the loop
 }
 
 int CrossFade::fadeIn()
@@ -92,16 +77,8 @@ int CrossFade::fadeIn()
   redVal = calculateVal(stepR, redVal, countFade);
   grnVal = calculateVal(stepG, grnVal, countFade);
   bluVal = calculateVal(stepB, bluVal, countFade);
+  countFade++;
 
-  // Serial.print("valor rojo: ");
-  // Serial.print(redVal);
-  // Serial.println();
-  // Serial.print("valor verde: ");
-  // Serial.print(grnVal);
-  // Serial.println();
-  // Serial.print("valor azul: ");
-  //  Serial.print(bluVal);
-  //  Serial.print("\n");
 
   DmxSimple.write(reflectorAddress, redVal);
   DmxSimple.write(reflectorAddress + 1, grnVal);
@@ -109,7 +86,14 @@ int CrossFade::fadeIn()
 
   if (redVal >= col_R || grnVal >= col_G || bluVal >= col_B)
   {
-    Serial.println("Fin fade IN");
+    Serial.print("Color fade in FIN: ");
+    Serial.print(redVal);
+    Serial.print(", ");
+    Serial.print(grnVal);
+    Serial.print(", ");
+    Serial.print(bluVal);
+    Serial.print("\n");
+   // Serial.println("Fin fade IN");
     return -1;
   }
   return 1;
@@ -119,12 +103,13 @@ int CrossFade::fadeOut()
   redVal = calculateVal(-stepR, redVal, countFade);
   grnVal = calculateVal(-stepG, grnVal, countFade);
   bluVal = calculateVal(-stepB, bluVal, countFade);
+  countFade++;
 
   DmxSimple.write(reflectorAddress, redVal);
   DmxSimple.write(reflectorAddress + 1, grnVal);
   DmxSimple.write(reflectorAddress + 2, bluVal);
 
-  if (redVal <= 0 || grnVal <= 0 || bluVal <=  0)
+  if (redVal <= 0 || grnVal <= 0 || bluVal <= 0)
   {
     Serial.println("Fin fade OUT");
     return -1;
