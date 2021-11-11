@@ -8,6 +8,18 @@
 #define STEP_FADE_OUT_ms 40
 #define DELAY_FULL 1
 
+enum Escena1
+{
+  INICIO_E1,
+  PASO_1,
+  PASO_2,
+  PASO_3,
+  PASO_4,
+  PASO_5,
+  PASO_6,
+  FIN_E1,
+} statusE1;
+
 extern void AnalizarTimer(void);
 
 RefStatus status_actual;
@@ -46,7 +58,6 @@ void setup()
     ;
   }
   Serial.println("Resistentes \n");
-  
 }
 
 void initRelectores()
@@ -67,8 +78,8 @@ void initRelectores()
   reflectoresEnUso = 2;
 }
 
-bool escena_1=true;
-bool escena_2=false;
+bool escena_1 = true;
+bool escena_2 = false;
 
 void loop()
 {
@@ -79,18 +90,52 @@ void loop()
 
 void analizarEscenas()
 {
-    if(escena_1)
+  switch (statusE1)
+  {
+  case INICIO_E1:
+    reflectores[0]->initCrossFade();
+    statusE1 = PASO_1;
+    break;
+  case PASO_1:
+    if (reflectores[0]->_crossFade.getFadeStatus() == FADE_OUT)
     {
-      escena_1=false;
-      reflectores[0]->initCrossFade();
-       escena_2=true;
-    }
-    if(reflectores[0]->_crossFade.getFadeStatus()==FADE_OUT && escena_2==true)
-    {
-      escena_2=false;
-      Serial.println("Terino el refelctor 2");
       reflectores[1]->initCrossFade();
+      statusE1 = PASO_2;
     }
+    break;
+  case PASO_2:
+    if (reflectores[1]->_crossFade.getFadeStatus() == FADE_OUT)
+    {
+      reflectores[0]->initCrossFade();
+      statusE1 = INICIO_E1;
+    }
+    break;
+  case PASO_3:
+    break;
+  case PASO_4:
+    break;
+  case PASO_5:
+    break;
+  case PASO_6:
+    break;
+  case FIN_E1:
+    break;
+
+  default:
+    break;
+  }
+  if (escena_1)
+  {
+    escena_1 = false;
+    reflectores[0]->initCrossFade();
+    escena_2 = true;
+  }
+  if (reflectores[0]->_crossFade.getFadeStatus() == FADE_OUT && escena_2 == true)
+  {
+    escena_2 = false;
+    Serial.println("Terino el refelctor 2");
+    reflectores[1]->initCrossFade();
+  }
 }
 void analizarFade()
 {
@@ -102,10 +147,10 @@ void analizarFade()
 
     switch (status_actual)
     {
-    case ESPERA:
+    case ESPERA_CF:
 
       break;
-    case INICIO:
+    case INICIO_CF:
       //TmrStart(EVENTO0, reflectorSelec->_crossFade.getTFadeIn());
       reflectores[i]->_crossFade.setFadeStatus(FADE_IN);
       digitalWrite(LED_BUILTIN, HIGH);
@@ -133,11 +178,11 @@ void analizarFade()
       if (fadeOutStatus == -1)
       {
         digitalWrite(LED_BUILTIN, HIGH);
-        reflectores[i]->_crossFade.setFadeStatus(FIN);
+        reflectores[i]->_crossFade.setFadeStatus(FIN_CF);
         reflectores[i]->_crossFade.setcountFade(0);
       }
       break;
-    case FIN:
+    case FIN_CF:
       delay(DELAY_FULL);
       break;
 

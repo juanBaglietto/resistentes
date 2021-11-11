@@ -77,7 +77,7 @@ void CrossFade::crossFade(Color color)
 
   // Serial.print("\n");
 
-  reflector_status = INICIO;
+  reflector_status = INICIO_CF;
 
   // Update current values for next loop
   // prevR = redVal;

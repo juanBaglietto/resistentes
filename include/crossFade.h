@@ -4,12 +4,12 @@
 #include "color.h"
 enum RefStatus
 {
-    ESPERA,
-    INICIO,
+    ESPERA_CF,
+    INICIO_CF,
     FADE_IN,
     FULL,
     FADE_OUT,
-    FIN
+    FIN_CF
 };
 class CrossFade
 {
