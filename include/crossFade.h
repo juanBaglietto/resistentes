@@ -8,7 +8,8 @@ enum RefStatus
     INICIO,
     FADE_IN,
     FULL,
-    FADE_OUT
+    FADE_OUT,
+    FIN
 };
 class CrossFade
 {

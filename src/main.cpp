@@ -27,7 +27,7 @@ void initRelectores();
 void crossFade(int address_base, int color[3]);
 Reflector *parserReflector(String msg);
 void analizarFade();
-
+void analizarEscenas();
 
 void ISR_timer1()
 {
@@ -43,10 +43,10 @@ void setup()
   Serial.begin(9600);
   while (!Serial)
   {
-    ; 
+    ;
   }
   Serial.println("Resistentes \n");
-  reflectores[0]->initCrossFade();
+  
 }
 
 void initRelectores()
@@ -62,18 +62,36 @@ void initRelectores()
   coloinit.changeColor(30, 20, 80);
   reflector2.initReflector(ADDRESS_BASE_REFL_2);
   reflector2.setColor(coloinit);
+  reflector2._crossFade.setTFade(10);
   reflectores[1] = &reflector2;
   reflectoresEnUso = 2;
 }
+
+bool escena_1=true;
+bool escena_2=false;
 
 void loop()
 {
   TmrEvent();
   analizarFade();
+  analizarEscenas();
 }
 
-int reflector_status = 0;
-
+void analizarEscenas()
+{
+    if(escena_1)
+    {
+      escena_1=false;
+      reflectores[0]->initCrossFade();
+       escena_2=true;
+    }
+    if(reflectores[0]->_crossFade.getFadeStatus()==FADE_OUT && escena_2==true)
+    {
+      escena_2=false;
+      Serial.println("Terino el refelctor 2");
+      reflectores[1]->initCrossFade();
+    }
+}
 void analizarFade()
 {
 
@@ -100,7 +118,7 @@ void analizarFade()
         digitalWrite(LED_BUILTIN, LOW);
         reflectores[i]->_crossFade.setFadeStatus(FULL);
         reflectores[i]->_crossFade.setcountFade(0);
-        reflectorSelec=reflectores[i];
+        reflectorSelec = reflectores[i];
         TmrStart(EVENTO1, reflectorSelec->_crossFade.getTFade());
       }
 
@@ -115,10 +133,14 @@ void analizarFade()
       if (fadeOutStatus == -1)
       {
         digitalWrite(LED_BUILTIN, HIGH);
-        reflectores[i]->_crossFade.setFadeStatus(ESPERA);
+        reflectores[i]->_crossFade.setFadeStatus(FIN);
         reflectores[i]->_crossFade.setcountFade(0);
       }
       break;
+    case FIN:
+      delay(DELAY_FULL);
+      break;
+
     default:
       break;
     }
