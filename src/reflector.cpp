@@ -1,7 +1,7 @@
 #include "reflector.h"
 #include <DmxSimple.h>
 
-void Reflector::initReflector(int address)
+void Reflector::initReflector(byte address)
 {
     _address = address;
     _crossFade.setAddress(_address);

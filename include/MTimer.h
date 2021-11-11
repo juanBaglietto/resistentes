@@ -9,12 +9,12 @@
 #define     EVENTO3   3 //Evento 3 lectura y promedio de acelerometro
 #define     EVENTO4   4 //Evento 3 lectura y promedio de acelerometro
 
-#define STEP_FADE      1
-#define TIME_FADE      500
+#define STEP_FADE      50
+#define TIME_FADE      1
 #define FREC_DE_GUINIO         5
 #define TIEMPO_DE_CLIK         1
 #define FREC_BATERIA_BAJA      3
-#define     DECIMAS     10
+#define     SEGUNDO    100
 #define     TIMERS      8
 #define TIEMPO_BATERIA_BAJA   255
 

@@ -10,7 +10,7 @@ class Reflector
 private:
     Color _color;
     
-    int _address;
+    byte _address;
     bool _status;
 
 
@@ -21,7 +21,7 @@ public:
        _address=0; 
        _status=false;
     }
-    void initReflector(int address);
+    void initReflector(byte address);
     void setColor(Color color);
     void setStatus(bool status);
     bool getStatus();

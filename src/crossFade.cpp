@@ -1,23 +1,19 @@
 #include "crossFade.h"
 #include "MTimer.h"
 
-int j = 0;   
+int j = 0;
 
-
-
-void CrossFade::setAddress(int adr)
+long CrossFade::calculateStep(int prevValue, int endValue)
 {
-  reflectorAddress=adr;
-}
-
-
-int CrossFade::calculateStep(int prevValue, int endValue)
-{
-  int step = endValue - prevValue; // What's the overall gap?
+  long step = endValue - prevValue; // What's the overall gap?
+  Serial.print(step);
+  Serial.println();
   if (step)
-  {                     // If its non-zero,
+  {                                  // If its non-zero,
     step = 1020 / step; //   divide by 1020
   }
+  Serial.print(step);
+  Serial.println();
   return step;
 }
 
@@ -43,6 +39,7 @@ int CrossFade::calculateVal(int step, int val, int i)
   }
 
   // Defensive driving: make sure val stays in the range 0-255
+
   if (val > 255)
   {
     val = 255;
@@ -60,22 +57,28 @@ int CrossFade::calculateVal(int step, int val, int i)
   *  the color values to the correct pins.
   */
 
-void CrossFade::crossFade( Color color)
+void CrossFade::crossFade(Color color)
 {
-  // Convert to 0-255
 
-  int R = (color.getRed() * 255) / 100;
-  int G = (color.getGreen() * 255) / 100;
-  int B = (color.getBlue() * 255) / 100;
+  col_R = color.getRed();
+  col_G = color.getGreen();
+  col_B = color.getBlue();
 
-  stepR = calculateStep(prevR, R);
-  stepG = calculateStep(prevG, G);
-  stepB = calculateStep(prevB, B);
-  fadeStatus=1;
-  TmrStart(EVENTO0, STEP_FADE);
-  TmrStart(EVENTO1, TIME_FADE);
+  stepR = calculateStep(prevR, col_R);
+  stepG = calculateStep(prevG, col_G);
+  stepB = calculateStep(prevB, col_B);
+  // fade_delay_b = ((t_fade_in * 1000) / (stepB * (color.getBlue())));
+  // Serial.print("delay");
+  // Serial.print(fade_delay_b);
 
-  
+  // Serial.print("\n");
+  // Serial.print("color");
+  // Serial.print((stepB * (color.getBlue())));
+
+  // Serial.print("\n");
+
+  reflector_status = INICIO;
+
   // Update current values for next loop
   // prevR = redVal;
   // prevG = grnVal;
@@ -83,26 +86,56 @@ void CrossFade::crossFade( Color color)
   //delay(hold); // Pause for optional 'wait' milliseconds before resuming the loop
 }
 
-void CrossFade::fadeIn()
+int CrossFade::fadeIn()
 {
 
-    redVal = calculateVal(stepR, redVal, countFade);
-    grnVal = calculateVal(stepG, grnVal, countFade);
-    bluVal = calculateVal(stepB, bluVal, countFade);
-    DmxSimple.write(reflectorAddress, redVal);
-    DmxSimple.write(reflectorAddress + 1, grnVal);
-    DmxSimple.write(reflectorAddress + 2, bluVal);
+  redVal = calculateVal(stepR, redVal, countFade);
+  grnVal = calculateVal(stepG, grnVal, countFade);
+  bluVal = calculateVal(stepB, bluVal, countFade);
+
+  // Serial.print("valor rojo: ");
+  // Serial.print(redVal);
+  // Serial.println();
+  // Serial.print("valor verde: ");
+  // Serial.print(grnVal);
+  // Serial.println();
+  // Serial.print("valor azul: ");
+  //  Serial.print(bluVal);
+  //  Serial.print("\n");
+
+  DmxSimple.write(reflectorAddress, redVal);
+  DmxSimple.write(reflectorAddress + 1, grnVal);
+  DmxSimple.write(reflectorAddress + 2, bluVal);
+
+  if (redVal >= col_R || grnVal >= col_G || bluVal >= col_B)
+  {
+    Serial.println("Fin fade IN");
+    return -1;
+  }
+  return 1;
 }
-void CrossFade::fadeOut()
+int CrossFade::fadeOut()
 {
-    redVal = calculateVal(-stepR, redVal, countFade);
-    grnVal = calculateVal(-stepG, grnVal, countFade);
-    bluVal = calculateVal(-stepB, bluVal, countFade);
-    DmxSimple.write(reflectorAddress, redVal);
-    DmxSimple.write(reflectorAddress + 1, grnVal);
-    DmxSimple.write(reflectorAddress + 2, bluVal);
+  redVal = calculateVal(-stepR, redVal, countFade);
+  grnVal = calculateVal(-stepG, grnVal, countFade);
+  bluVal = calculateVal(-stepB, bluVal, countFade);
+
+  DmxSimple.write(reflectorAddress, redVal);
+  DmxSimple.write(reflectorAddress + 1, grnVal);
+  DmxSimple.write(reflectorAddress + 2, bluVal);
+
+  if (redVal <= 0 || grnVal <= 0 || bluVal <=  0)
+  {
+    Serial.println("Fin fade OUT");
+    return -1;
+  }
+  return 1;
 }
 
+void CrossFade::setAddress(byte adr)
+{
+  reflectorAddress = adr;
+}
 void CrossFade::countFadeUp()
 {
   countFade++;
@@ -110,15 +143,55 @@ void CrossFade::countFadeUp()
 
 void CrossFade::setcountFade(int value)
 {
-  countFade=value;
+  countFade = value;
 }
 
-void CrossFade::setFadeStatus(int value)
+void CrossFade::setFadeStatus(RefStatus st)
 {
-  fadeStatus=value;
+  reflector_status = st;
 }
 
-int CrossFade::getFadeStatus()
+RefStatus CrossFade::getFadeStatus()
 {
-  return fadeStatus;
+  return reflector_status;
+}
+
+void CrossFade::setTFadeIn(int value)
+{
+  t_fade_in = value;
+}
+
+int CrossFade::getTFadeIn()
+{
+  return t_fade_in;
+}
+
+void CrossFade::setTFadeOut(int value)
+{
+  t_fade_out = value;
+}
+
+int CrossFade::getTFadeOut()
+{
+  return t_fade_out;
+}
+
+void CrossFade::setTFade(int value)
+{
+  t_fade = value;
+}
+
+int CrossFade::getTFade()
+{
+  return t_fade;
+}
+
+int CrossFade::getTcountFade()
+{
+  return countFade;
+}
+
+int CrossFade::getFadeDelay_b()
+{
+  return fade_delay_b;
 }
