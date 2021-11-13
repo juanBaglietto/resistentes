@@ -1,9 +1,9 @@
 
 #include <Arduino_FreeRTOS.h>
-#include "reflector.h"
 #include "colors.h"
 #include "MTimer.h"
-#define MAX_REFLECTOR 6
+#include "reflectorHandler.h"
+
 #define STEP_FADE_IN_ms 1
 #define STEP_FADE_OUT_ms 1
 #define DELAY_FULL 1
@@ -28,12 +28,12 @@ byte _address_manual = ADDRESS_BASE_REFL_1;
 int _color[3] = {75, 10, 0};
 int fadeInStatus = 0;
 int fadeOutStatus = 0;
-byte reflectoresEnUso = 0;
+
 
 Reflector reflector1;
 Reflector reflector2;
 Reflector *reflectorSelec;
-Reflector *reflectores[MAX_REFLECTOR];
+ReflectorHandler reflectores;
 
 void initRelectores();
 void crossFade(int address_base, int color[3]);
@@ -48,6 +48,7 @@ void ISR_timer1()
 
 void setup()
 {
+
   initRelectores();
   pinMode(LED_BUILTIN, OUTPUT);
   Timer1.initialize(10000); // timer 1 interrumpe cada 100ms
@@ -68,14 +69,15 @@ void initRelectores()
   coloinit.changeColor(238,102, 8);
   reflector1.setColor(coloinit);
   reflector1._crossFade.setTFade(5);
-  reflectores[0] = &reflector1;
+  reflectores.addReflector(&reflector1);
+
 
   //coloinit.changeColor(30, 20, 80);
   reflector2.initReflector(ADDRESS_BASE_REFL_2);
   reflector2.setColor(coloinit);
   reflector2._crossFade.setTFade(5);
-  reflectores[1] = &reflector2;
-  reflectoresEnUso = 2;
+  reflectores.addReflector(&reflector2);
+
 }
 
 
@@ -92,20 +94,19 @@ void analizarEscenas()
   switch (statusE1)
   {
   case INICIO_E1:
-    reflectores[0]->initCrossFade();
+    reflectores.getReflector(0)->initCrossFade();
     statusE1 = PASO_1;
     break;
   case PASO_1:
-    if (reflectores[0]->_crossFade.getFadeStatus() == FADE_OUT && reflectores[0]->_crossFade.getPorFadeOut()>=90)
+    if (reflectores.getReflector(0)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(0)->_crossFade.getPorFadeOut()>=90)
     {
-      reflectores[1]->initCrossFade();
+      reflectores.getReflector(1)->initCrossFade();
       statusE1 = PASO_2;
     }
     break;
   case PASO_2:
-    if (reflectores[1]->_crossFade.getFadeStatus() == FADE_OUT && reflectores[1]->_crossFade.getPorFadeOut()>=50)
+    if (reflectores.getReflector(1)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(1)->_crossFade.getPorFadeOut()>=50)
     {
-      reflectores[0]->initCrossFade();
       statusE1 = INICIO_E1;
     }
     break;
@@ -127,10 +128,10 @@ void analizarEscenas()
 void analizarFade()
 {
 
-  for (byte i = 0; i < reflectoresEnUso; i++)
+  for (byte i = 0; i < reflectores.getCantReflectoresEnUso(); i++)
   {
 
-    status_actual = reflectores[i]->_crossFade.getFadeStatus();
+    status_actual = reflectores.getReflector(i)->_crossFade.getFadeStatus();
 
     switch (status_actual)
     {
@@ -139,18 +140,18 @@ void analizarFade()
       break;
     case INICIO_CF:
       //TmrStart(EVENTO0, reflectorSelec->_crossFade.getTFadeIn());
-      reflectores[i]->_crossFade.setFadeStatus(FADE_IN);
+      reflectores.getReflector(i)->_crossFade.setFadeStatus(FADE_IN);
       digitalWrite(LED_BUILTIN, HIGH);
       break;
     case FADE_IN:
-      fadeInStatus = reflectores[i]->_crossFade.fadeIn();
+      fadeInStatus = reflectores.getReflector(i)->_crossFade.fadeIn();
       delay(STEP_FADE_IN_ms);
       if (fadeInStatus == -1)
       {
         digitalWrite(LED_BUILTIN, LOW);
-        reflectores[i]->_crossFade.setFadeStatus(FULL);
-        reflectores[i]->_crossFade.setcountFade(0);
-        reflectorSelec = reflectores[i];
+        reflectores.getReflector(i)->_crossFade.setFadeStatus(FULL);
+        reflectores.getReflector(i)->_crossFade.setcountFade(0);
+        reflectorSelec = reflectores.getReflector(i);
         TmrStart(EVENTO1, reflectorSelec->_crossFade.getTFade());
       }
 
@@ -160,13 +161,13 @@ void analizarFade()
       break;
 
     case FADE_OUT:
-      fadeOutStatus = reflectores[i]->_crossFade.fadeOut();
+      fadeOutStatus = reflectores.getReflector(i)->_crossFade.fadeOut();
       delay(STEP_FADE_OUT_ms);
       if (fadeOutStatus == -1)
       {
         digitalWrite(LED_BUILTIN, HIGH);
-        reflectores[i]->_crossFade.setFadeStatus(FIN_CF);
-        reflectores[i]->_crossFade.setcountFade(0);
+        reflectores.getReflector(i)->_crossFade.setFadeStatus(FIN_CF);
+        reflectores.getReflector(i)->_crossFade.setcountFade(0);
       }
       break;
     case FIN_CF:
@@ -177,29 +178,6 @@ void analizarFade()
       break;
     }
   }
-
-  // if (reflector1._crossFade.getFadeStatus() == 1)
-  // {
-  //   fadeInStatus=reflector1._crossFade.fadeIn();
-  //   if(fadeInStatus==-1)
-  //   {
-  //     reflector1._crossFade.setFadeStatus(3);
-  //     reflector1._crossFade.setcountFade(0);
-  //     TmrStart(EVENTO3, reflector1._crossFade.getTFade());
-  //   }
-  //   else
-  //   {
-  //     reflector1._crossFade.countFadeUp();
-  //   }
-
-  //   delay(reflector1._crossFade.getFadeDelay_b());
-  // }
-  // else if (reflector1._crossFade.getFadeStatus() == 2)
-  // {
-  //   reflector1._crossFade.fadeOut();
-  //   reflector1._crossFade.countFadeUp();
-  //   delay(reflector1._crossFade.getFadeDelay_b());
-  // }
 }
 
 Reflector *parserReflector(String msg)
