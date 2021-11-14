@@ -8,17 +8,41 @@
 #define STEP_FADE_OUT_ms 1
 #define DELAY_FULL 1
 
+enum todasLasEscenas
+{
+  ESCENA_1,
+  ESCENA_2,
+  ESCENA_3,
+} escenaActual;
+
+
+
 enum Escena1
 {
-  INICIO_E1,
-  PASO_1,
-  PASO_2,
-  PASO_3,
-  PASO_4,
-  PASO_5,
-  PASO_6,
-  FIN_E1,
+  E1_INICIO,
+  E1_PASO_1,
+  E1_PASO_2,
+  E1_PASO_3,
+  E1_PASO_4,
+  E1_PASO_5,
+  E1_PASO_6,
+  E1_FIN,
 } statusE1;
+
+
+
+enum Escena2
+{
+  E2_INICIO,
+  E2_PASO_1,
+  E2_PASO_2,
+  E2_PASO_3,
+  E2_PASO_4,
+  E2_PASO_5,
+  E2_PASO_6,
+  E2_FIN,
+} statusE2;
+
 
 extern void AnalizarTimer(void);
 
@@ -29,9 +53,10 @@ int _color[3] = {75, 10, 0};
 int fadeInStatus = 0;
 int fadeOutStatus = 0;
 
-
 Reflector reflector1;
 Reflector reflector2;
+Reflector reflector3;
+Reflector reflector4;
 Reflector *reflectorSelec;
 ReflectorHandler reflectores;
 
@@ -40,6 +65,10 @@ void crossFade(int address_base, int color[3]);
 Reflector *parserReflector(String msg);
 void analizarFade();
 void analizarEscenas();
+void analizarEscena_1();
+void analizarEscena_2();
+void analizarEscena_3();
+
 
 void ISR_timer1()
 {
@@ -59,6 +88,7 @@ void setup()
     ;
   }
   Serial.println("Resistentes \n");
+  escenaActual=ESCENA_2;
 }
 
 void initRelectores()
@@ -66,11 +96,10 @@ void initRelectores()
   reflector1.initReflector(ADDRESS_BASE_REFL_1);
 
   Color coloinit;
-  coloinit.changeColor(238,102, 8);
+  coloinit.changeColor(238, 102, 8);
   reflector1.setColor(coloinit);
   reflector1._crossFade.setTFade(5);
   reflectores.addReflector(&reflector1);
-
 
   //coloinit.changeColor(30, 20, 80);
   reflector2.initReflector(ADDRESS_BASE_REFL_2);
@@ -78,9 +107,19 @@ void initRelectores()
   reflector2._crossFade.setTFade(5);
   reflectores.addReflector(&reflector2);
 
+  reflector3.initReflector(ADDRESS_BASE_REFL_3);
+  reflector3.setColor(coloinit);
+  reflector3._crossFade.setTFade(5);
+  reflectores.addReflector(&reflector3);
+
+  reflector4.initReflector(ADDRESS_BASE_REFL_4);
+  reflector4.setColor(coloinit);
+  reflector4._crossFade.setTFade(5);
+  reflectores.addReflector(&reflector4);
+
+
+  
 }
-
-
 
 void loop()
 {
@@ -91,40 +130,102 @@ void loop()
 
 void analizarEscenas()
 {
-  switch (statusE1)
+  switch (escenaActual)
   {
-  case INICIO_E1:
-    reflectores.getReflector(0)->initCrossFade();
-    statusE1 = PASO_1;
+  case ESCENA_1:
+    analizarEscena_1();
     break;
-  case PASO_1:
-    if (reflectores.getReflector(0)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(0)->_crossFade.getPorFadeOut()>=90)
-    {
-      reflectores.getReflector(1)->initCrossFade();
-      statusE1 = PASO_2;
-    }
+  case ESCENA_2:
+    analizarEscena_2();
     break;
-  case PASO_2:
-    if (reflectores.getReflector(1)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(1)->_crossFade.getPorFadeOut()>=50)
-    {
-      statusE1 = INICIO_E1;
-    }
-    break;
-  case PASO_3:
-    break;
-  case PASO_4:
-    break;
-  case PASO_5:
-    break;
-  case PASO_6:
-    break;
-  case FIN_E1:
+  case ESCENA_3:
+    analizarEscena_3();
     break;
 
   default:
     break;
   }
 }
+
+void analizarEscena_1()
+{
+  switch (statusE1)
+  {
+  case E1_INICIO:
+    reflectores.getReflector(0)->initCrossFade();
+    statusE1 = E1_PASO_1;
+    break;
+  case E1_PASO_1:
+    if (reflectores.getReflector(0)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(0)->_crossFade.getPorFadeOut() >= 90)
+    {
+      reflectores.getReflector(1)->initCrossFade();
+      statusE1 = E1_PASO_2;
+    }
+    break;
+  case E1_PASO_2:
+    if (reflectores.getReflector(1)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(1)->_crossFade.getPorFadeOut() >= 50)
+    {
+      statusE1 = E1_INICIO;
+    }
+    break;
+  case E1_PASO_3:
+    break;
+  case E1_PASO_4:
+    break;
+  case E1_PASO_5:
+    break;
+  case E1_PASO_6:
+    break;
+  case E1_FIN:
+    break;
+
+  default:
+    break;
+  }
+  
+}
+
+void analizarEscena_2()
+{
+  switch (statusE2)
+  {
+  case E2_INICIO:
+    reflectores.getReflector(0)->initCrossFade();
+    reflectores.getReflector(1)->initCrossFade();
+    statusE2 = E2_PASO_1;
+    break;
+  case E2_PASO_1:
+    if (reflectores.getReflector(1)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(1)->_crossFade.getPorFadeOut() >= 90)
+    {
+      reflectores.getReflector(2)->initCrossFade();
+      reflectores.getReflector(3)->initCrossFade();
+      statusE2 = E2_PASO_2;
+    }
+    break;
+  case E2_PASO_2:
+    if (reflectores.getReflector(3)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(3)->_crossFade.getPorFadeOut() >= 50)
+    {
+      statusE2 = E2_INICIO;
+    }
+    break;
+  case E2_PASO_3:
+    break;
+  case E2_PASO_4:
+    break;
+  case E2_PASO_5:
+    break;
+  case E2_PASO_6:
+    break;
+  case E2_FIN:
+    break;
+
+  default:
+    break;
+  }
+  
+}
+void analizarEscena_3()
+{}
 void analizarFade()
 {
 

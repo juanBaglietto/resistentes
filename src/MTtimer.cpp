@@ -1,12 +1,10 @@
 #include "MTimer.h"
-#include "reflector.h"
+#include "reflectorHandler.h"
 
 volatile uint8_t TmrRun[TIMERS];
 volatile uint8_t Eventos = 0;
-extern Reflector reflector1;
-extern Reflector reflector2;
-extern Reflector *reflectorSelec;
-int segundo=0;
+extern ReflectorHandler reflectores;
+int segundo = 0;
 // funciones de timer
 //******************************************************************************************
 //  Proposito: Lanzamientos de Timers.
@@ -78,8 +76,15 @@ void TmrEvent(void)
             break;
 
         case 0x02: //venciÃ³ EVENTO1
-            reflectorSelec->_crossFade.setFadeStatus(FADE_OUT);
-            
+            for (size_t i = 0; i <= reflectores.getCantReflectoresEnUso(); i++)
+            {
+                if((reflectores.getReflector(i)->_crossFade.getFadeStatus())==FULL)
+                {
+                    reflectores.getReflector(i)->_crossFade.setFadeStatus(FADE_OUT);
+                }
+                
+            }
+
             //TmrStart(EVENTO2, TIME_FADE);
             LIMPIObANDERA;
             break;
@@ -131,7 +136,7 @@ void AnalizarTimer(void)
     if (segundo >= SEGUNDO)
     {
 
-        segundo=0;
+        segundo = 0;
         for (i = 0; i < TIMERS; i++)
         {
             if (TmrRun[i])
@@ -146,7 +151,6 @@ void AnalizarTimer(void)
                 }
             }
         }
-        
     }
     segundo++;
 }
