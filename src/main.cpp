@@ -1,12 +1,9 @@
 
 #include <Arduino_FreeRTOS.h>
 #include "colors.h"
-#include "MTimer.h"
 #include "reflectorHandler.h"
 
-#define STEP_FADE_IN_ms 1
-#define STEP_FADE_OUT_ms 1
-#define DELAY_FULL 1
+
 
 enum todasLasEscenas
 {
@@ -43,27 +40,17 @@ enum Escena2
   E2_FIN,
 } statusE2;
 
-
-extern void AnalizarTimer(void);
-
-RefStatus status_actual;
-
-byte _address_manual = ADDRESS_BASE_REFL_1;
-int _color[3] = {75, 10, 0};
-int fadeInStatus = 0;
-int fadeOutStatus = 0;
-
 Reflector reflector1;
 Reflector reflector2;
 Reflector reflector3;
 Reflector reflector4;
 Reflector *reflectorSelec;
-ReflectorHandler reflectores;
+ReflectorHandler reflectors;
 
+extern void AnalizarTimer(void);
 void initRelectores();
 void crossFade(int address_base, int color[3]);
 Reflector *parserReflector(String msg);
-void analizarFade();
 void analizarEscenas();
 void analizarEscena_1();
 void analizarEscena_2();
@@ -88,7 +75,7 @@ void setup()
     ;
   }
   Serial.println("Resistentes \n");
-  escenaActual=ESCENA_2;
+  escenaActual=ESCENA_1;
 }
 
 void initRelectores()
@@ -98,24 +85,24 @@ void initRelectores()
   Color coloinit;
   coloinit.changeColor(238, 102, 8);
   reflector1.setColor(coloinit);
-  reflector1._crossFade.setTFade(5);
-  reflectores.addReflector(&reflector1);
+  reflector1.setTimeCrossFade(2,5,2);
+  reflectors.addReflector(&reflector1);
 
   //coloinit.changeColor(30, 20, 80);
   reflector2.initReflector(ADDRESS_BASE_REFL_2);
   reflector2.setColor(coloinit);
-  reflector2._crossFade.setTFade(5);
-  reflectores.addReflector(&reflector2);
+  reflector2.setTimeCrossFade(2,5,2);
+  reflectors.addReflector(&reflector2);
 
   reflector3.initReflector(ADDRESS_BASE_REFL_3);
   reflector3.setColor(coloinit);
-  reflector3._crossFade.setTFade(5);
-  reflectores.addReflector(&reflector3);
+  reflector3.setTimeCrossFade(2,5,2);
+  reflectors.addReflector(&reflector3);
 
   reflector4.initReflector(ADDRESS_BASE_REFL_4);
   reflector4.setColor(coloinit);
-  reflector4._crossFade.setTFade(5);
-  reflectores.addReflector(&reflector4);
+  reflector4.setTimeCrossFade(2,5,2);
+  reflectors.addReflector(&reflector4);
 
 
   
@@ -124,8 +111,8 @@ void initRelectores()
 void loop()
 {
   TmrEvent();
-  analizarFade();
   analizarEscenas();
+  reflectors.UpdateAllReflectors();
 }
 
 void analizarEscenas()
@@ -152,18 +139,18 @@ void analizarEscena_1()
   switch (statusE1)
   {
   case E1_INICIO:
-    reflectores.getReflector(0)->initCrossFade();
+    reflectors.getReflector(0)->setReflectorStatus(INICIO_CF);
     statusE1 = E1_PASO_1;
     break;
   case E1_PASO_1:
-    if (reflectores.getReflector(0)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(0)->_crossFade.getPorFadeOut() >= 90)
+    if (reflectors.getReflector(0)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(0)->getPercentFadeOut() >= 90)
     {
-      reflectores.getReflector(1)->initCrossFade();
+      reflectors.getReflector(1)->setReflectorStatus(INICIO_CF);
       statusE1 = E1_PASO_2;
     }
     break;
   case E1_PASO_2:
-    if (reflectores.getReflector(1)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(1)->_crossFade.getPorFadeOut() >= 50)
+    if (reflectors.getReflector(1)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(1)->getPercentFadeOut() >= 50)
     {
       statusE1 = E1_INICIO;
     }
@@ -190,20 +177,20 @@ void analizarEscena_2()
   switch (statusE2)
   {
   case E2_INICIO:
-    reflectores.getReflector(0)->initCrossFade();
-    reflectores.getReflector(1)->initCrossFade();
+    reflectors.getReflector(0)->setReflectorStatus(INICIO_CF);
+    reflectors.getReflector(1)->setReflectorStatus(INICIO_CF);
     statusE2 = E2_PASO_1;
     break;
   case E2_PASO_1:
-    if (reflectores.getReflector(1)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(1)->_crossFade.getPorFadeOut() >= 90)
+    if (reflectors.getReflector(1)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(1)->getPercentFadeOut() >= 90)
     {
-      reflectores.getReflector(2)->initCrossFade();
-      reflectores.getReflector(3)->initCrossFade();
+      reflectors.getReflector(2)->setReflectorStatus(INICIO_CF);
+      reflectors.getReflector(3)->setReflectorStatus(INICIO_CF);
       statusE2 = E2_PASO_2;
     }
     break;
   case E2_PASO_2:
-    if (reflectores.getReflector(3)->_crossFade.getFadeStatus() == FADE_OUT && reflectores.getReflector(3)->_crossFade.getPorFadeOut() >= 50)
+    if (reflectors.getReflector(3)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(3)->getPercentFadeOut() >= 50)
     {
       statusE2 = E2_INICIO;
     }
@@ -226,60 +213,7 @@ void analizarEscena_2()
 }
 void analizarEscena_3()
 {}
-void analizarFade()
-{
 
-  for (byte i = 0; i < reflectores.getCantReflectoresEnUso(); i++)
-  {
-
-    status_actual = reflectores.getReflector(i)->_crossFade.getFadeStatus();
-
-    switch (status_actual)
-    {
-    case ESPERA_CF:
-
-      break;
-    case INICIO_CF:
-      //TmrStart(EVENTO0, reflectorSelec->_crossFade.getTFadeIn());
-      reflectores.getReflector(i)->_crossFade.setFadeStatus(FADE_IN);
-      digitalWrite(LED_BUILTIN, HIGH);
-      break;
-    case FADE_IN:
-      fadeInStatus = reflectores.getReflector(i)->_crossFade.fadeIn();
-      delay(STEP_FADE_IN_ms);
-      if (fadeInStatus == -1)
-      {
-        digitalWrite(LED_BUILTIN, LOW);
-        reflectores.getReflector(i)->_crossFade.setFadeStatus(FULL);
-        reflectores.getReflector(i)->_crossFade.setcountFade(0);
-        reflectorSelec = reflectores.getReflector(i);
-        TmrStart(EVENTO1, reflectorSelec->_crossFade.getTFade());
-      }
-
-      break;
-    case FULL:
-      delay(DELAY_FULL);
-      break;
-
-    case FADE_OUT:
-      fadeOutStatus = reflectores.getReflector(i)->_crossFade.fadeOut();
-      delay(STEP_FADE_OUT_ms);
-      if (fadeOutStatus == -1)
-      {
-        digitalWrite(LED_BUILTIN, HIGH);
-        reflectores.getReflector(i)->_crossFade.setFadeStatus(FIN_CF);
-        reflectores.getReflector(i)->_crossFade.setcountFade(0);
-      }
-      break;
-    case FIN_CF:
-      delay(DELAY_FULL);
-      break;
-
-    default:
-      break;
-    }
-  }
-}
 
 Reflector *parserReflector(String msg)
 {

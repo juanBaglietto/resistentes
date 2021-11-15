@@ -2,15 +2,7 @@
 #include <DmxSimple.h>
 #include <Arduino.h>
 #include "color.h"
-enum RefStatus
-{
-    ESPERA_CF,
-    INICIO_CF,
-    FADE_IN,
-    FULL,
-    FADE_OUT,
-    FIN_CF
-};
+
 class CrossFade
 {
 private:
@@ -37,33 +29,26 @@ private:
 
     byte reflectorAddress;
 
-    RefStatus reflector_status;
+
     int t_fade_in = 0;
     int t_fade_out = 0;
-    int t_fade = 0;
+    int t_fade_full = 0;
 
-    int fade_delay_r;
-    int fade_delay_g;
-    int fade_delay_b;
-
-    int porcentajeFadeOut=0;
+    int percentFadeOut=0;
 
 public:
     void setAddress(byte adr);
     void crossFade(Color color);
     int fadeIn();
     int fadeOut();
-    void countFadeUp();
     void setcountFade(int value);
     int getTcountFade();
-    void setFadeStatus(RefStatus st);
-    RefStatus getFadeStatus();
     void setTFadeIn(int);
     int getTFadeIn();
     void setTFadeOut(int);
     int getTFadeOut();
-    void setTFade(int);
-    int getTFade();
+    void setTFadeFull(int);
+    int getTFadeFull();
     int getFadeDelay_b();
-    int getPorFadeOut();
+    int getPercentFadeOut();
 };

@@ -3,7 +3,7 @@
 
 volatile uint8_t TmrRun[TIMERS];
 volatile uint8_t Eventos = 0;
-extern ReflectorHandler reflectores;
+extern ReflectorHandler reflectors;
 int segundo = 0;
 // funciones de timer
 //******************************************************************************************
@@ -76,11 +76,11 @@ void TmrEvent(void)
             break;
 
         case 0x02: //venciÃ³ EVENTO1
-            for (size_t i = 0; i <= reflectores.getCantReflectoresEnUso(); i++)
+            for (size_t i = 0; i <= reflectors.getCantReflectoresEnUso(); i++)
             {
-                if((reflectores.getReflector(i)->_crossFade.getFadeStatus())==FULL)
+                if((reflectors.getReflector(i)->getReflectorStatus())==FULL)
                 {
-                    reflectores.getReflector(i)->_crossFade.setFadeStatus(FADE_OUT);
+                    reflectors.getReflector(i)->setReflectorStatus(FADE_OUT);
                 }
                 
             }

@@ -3,28 +3,43 @@
 #define ADDRESS_BASE_REFL_2 7
 #define ADDRESS_BASE_REFL_3 13
 #define ADDRESS_BASE_REFL_4 20
-#include "crossFade.h"
 
+#define STEP_FADE_IN_ms 1
+#define STEP_FADE_OUT_ms 1
+#define DELAY_FULL 1
+#include "crossFade.h"
+#include "MTimer.h"
+enum ReflectorStatus
+{
+    ESPERA_CF,
+    INICIO_CF,
+    FADE_IN,
+    FULL,
+    FADE_OUT,
+    FIN_CF
+};
 class Reflector
 {
 private:
     Color _color;
-    
+    bool reflectorOn;
     byte _address;
-    bool _status;
-
+    ReflectorStatus reflectorStatus;
+    CrossFade crossFade;
 
 public:
-    CrossFade _crossFade;
+    
     Reflector()
     {
        _address=0; 
-       _status=false;
     }
     void initReflector(byte address);
     void setColor(Color color);
-    void setStatus(bool status);
-    bool getStatus();
-    void equal(Reflector R1);
-    void initCrossFade();
+    void manualOnOff(bool on);
+    bool isReflectorOn();
+    void setReflectorStatus(ReflectorStatus refStatus);
+    ReflectorStatus getReflectorStatus();
+    void updateStatus();
+    void setTimeCrossFade(int t_in,int t_full,int t_out);
+    int getPercentFadeOut();
 };

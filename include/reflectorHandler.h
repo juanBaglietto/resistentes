@@ -5,13 +5,14 @@
 class ReflectorHandler
 {
 private:
-    Reflector *reflectores[MAXIMO_REFLECTORES];
-    byte reflectoresEnUso=0;
+    Reflector *reflectors[MAXIMO_REFLECTORES];
+    byte reflectorsEnUso=0;
 
 public:
     ReflectorHandler();
     void addReflector(Reflector *ref);
     Reflector* getReflector(byte num_ref);
     byte getCantReflectoresEnUso();
+    void UpdateAllReflectors();
     
 };

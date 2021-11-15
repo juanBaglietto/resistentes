@@ -75,8 +75,6 @@ void CrossFade::crossFade(Color color)
     // Serial.print(stepB );
     // Serial.print("\n");
 
-  reflector_status = INICIO_CF;
-
 }
 
 int CrossFade::fadeIn()
@@ -116,7 +114,7 @@ int CrossFade::fadeOut()
   grnVal = calculateVal(-stepG, grnVal, countFade);
   bluVal = calculateVal(-stepB, bluVal, countFade);
   countFade++;
-  porcentajeFadeOut=(countFade*100)/STEP_DIV;
+  percentFadeOut=(countFade*100)/STEP_DIV;
   DmxSimple.write(reflectorAddress, redVal);
   DmxSimple.write(reflectorAddress + 1, grnVal);
   DmxSimple.write(reflectorAddress + 2, bluVal);
@@ -133,24 +131,9 @@ void CrossFade::setAddress(byte adr)
 {
   reflectorAddress = adr;
 }
-void CrossFade::countFadeUp()
-{
-  countFade++;
-}
-
 void CrossFade::setcountFade(int value)
 {
   countFade = value;
-}
-
-void CrossFade::setFadeStatus(RefStatus st)
-{
-  reflector_status = st;
-}
-
-RefStatus CrossFade::getFadeStatus()
-{
-  return reflector_status;
 }
 
 void CrossFade::setTFadeIn(int value)
@@ -173,14 +156,14 @@ int CrossFade::getTFadeOut()
   return t_fade_out;
 }
 
-void CrossFade::setTFade(int value)
+void CrossFade::setTFadeFull(int value)
 {
-  t_fade = value;
+  t_fade_full = value;
 }
 
-int CrossFade::getTFade()
+int CrossFade::getTFadeFull()
 {
-  return t_fade;
+  return t_fade_full;
 }
 
 int CrossFade::getTcountFade()
@@ -188,12 +171,7 @@ int CrossFade::getTcountFade()
   return countFade;
 }
 
-int CrossFade::getFadeDelay_b()
+int CrossFade::getPercentFadeOut()
 {
-  return fade_delay_b;
-}
-
-int CrossFade::getPorFadeOut()
-{
-  return porcentajeFadeOut;
+  return percentFadeOut;
 }
