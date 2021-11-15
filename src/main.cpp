@@ -1,60 +1,19 @@
 
 #include <Arduino_FreeRTOS.h>
 #include "colors.h"
-#include "reflectorHandler.h"
-
-
-
-enum todasLasEscenas
-{
-  ESCENA_1,
-  ESCENA_2,
-  ESCENA_3,
-} escenaActual;
-
-
-
-enum Escena1
-{
-  E1_INICIO,
-  E1_PASO_1,
-  E1_PASO_2,
-  E1_PASO_3,
-  E1_PASO_4,
-  E1_PASO_5,
-  E1_PASO_6,
-  E1_FIN,
-} statusE1;
-
-
-
-enum Escena2
-{
-  E2_INICIO,
-  E2_PASO_1,
-  E2_PASO_2,
-  E2_PASO_3,
-  E2_PASO_4,
-  E2_PASO_5,
-  E2_PASO_6,
-  E2_FIN,
-} statusE2;
+#include "director.h"
 
 Reflector reflector1;
 Reflector reflector2;
 Reflector reflector3;
 Reflector reflector4;
-Reflector *reflectorSelec;
 ReflectorHandler reflectors;
+Director resistentes;
 
 extern void AnalizarTimer(void);
-void initRelectores();
+void initReflectors();
 void crossFade(int address_base, int color[3]);
 Reflector *parserReflector(String msg);
-void analizarEscenas();
-void analizarEscena_1();
-void analizarEscena_2();
-void analizarEscena_3();
 
 
 void ISR_timer1()
@@ -65,7 +24,7 @@ void ISR_timer1()
 void setup()
 {
 
-  initRelectores();
+  initReflectors();
   pinMode(LED_BUILTIN, OUTPUT);
   Timer1.initialize(10000); // timer 1 interrumpe cada 100ms
   Timer1.attachInterrupt(ISR_timer1);
@@ -75,10 +34,11 @@ void setup()
     ;
   }
   Serial.println("Resistentes \n");
-  escenaActual=ESCENA_1;
+  resistentes.init(&reflectors);
+  resistentes.setScene(SCENE_1);
 }
 
-void initRelectores()
+void initReflectors()
 {
   reflector1.initReflector(ADDRESS_BASE_REFL_1);
 
@@ -103,116 +63,14 @@ void initRelectores()
   reflector4.setColor(coloinit);
   reflector4.setTimeCrossFade(2,5,2);
   reflectors.addReflector(&reflector4);
-
-
-  
 }
 
 void loop()
 {
   TmrEvent();
-  analizarEscenas();
+  resistentes.updateScenes();
   reflectors.UpdateAllReflectors();
 }
-
-void analizarEscenas()
-{
-  switch (escenaActual)
-  {
-  case ESCENA_1:
-    analizarEscena_1();
-    break;
-  case ESCENA_2:
-    analizarEscena_2();
-    break;
-  case ESCENA_3:
-    analizarEscena_3();
-    break;
-
-  default:
-    break;
-  }
-}
-
-void analizarEscena_1()
-{
-  switch (statusE1)
-  {
-  case E1_INICIO:
-    reflectors.getReflector(0)->setReflectorStatus(INICIO_CF);
-    statusE1 = E1_PASO_1;
-    break;
-  case E1_PASO_1:
-    if (reflectors.getReflector(0)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(0)->getPercentFadeOut() >= 90)
-    {
-      reflectors.getReflector(1)->setReflectorStatus(INICIO_CF);
-      statusE1 = E1_PASO_2;
-    }
-    break;
-  case E1_PASO_2:
-    if (reflectors.getReflector(1)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(1)->getPercentFadeOut() >= 50)
-    {
-      statusE1 = E1_INICIO;
-    }
-    break;
-  case E1_PASO_3:
-    break;
-  case E1_PASO_4:
-    break;
-  case E1_PASO_5:
-    break;
-  case E1_PASO_6:
-    break;
-  case E1_FIN:
-    break;
-
-  default:
-    break;
-  }
-  
-}
-
-void analizarEscena_2()
-{
-  switch (statusE2)
-  {
-  case E2_INICIO:
-    reflectors.getReflector(0)->setReflectorStatus(INICIO_CF);
-    reflectors.getReflector(1)->setReflectorStatus(INICIO_CF);
-    statusE2 = E2_PASO_1;
-    break;
-  case E2_PASO_1:
-    if (reflectors.getReflector(1)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(1)->getPercentFadeOut() >= 90)
-    {
-      reflectors.getReflector(2)->setReflectorStatus(INICIO_CF);
-      reflectors.getReflector(3)->setReflectorStatus(INICIO_CF);
-      statusE2 = E2_PASO_2;
-    }
-    break;
-  case E2_PASO_2:
-    if (reflectors.getReflector(3)->getReflectorStatus() == FADE_OUT && reflectors.getReflector(3)->getPercentFadeOut() >= 50)
-    {
-      statusE2 = E2_INICIO;
-    }
-    break;
-  case E2_PASO_3:
-    break;
-  case E2_PASO_4:
-    break;
-  case E2_PASO_5:
-    break;
-  case E2_PASO_6:
-    break;
-  case E2_FIN:
-    break;
-
-  default:
-    break;
-  }
-  
-}
-void analizarEscena_3()
-{}
 
 
 Reflector *parserReflector(String msg)
